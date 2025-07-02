@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
@@ -41,6 +42,8 @@ func handlerShorten(c *gin.Context, storage *URLStorage) {
 
 func handleRedirect(c *gin.Context, storage *URLStorage) {
 	shortCode := c.Param(ShortCode)
+
+	log.Printf("Received shortCode: %q", shortCode)
 
 	longUrl, err := storage.Get(shortCode)
 	if err != nil {

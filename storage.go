@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"sync"
 )
@@ -71,6 +72,8 @@ func (s *URLStorage) Get(shortCode string) (string, error) {
 		return "", err
 	}
 
+	log.Printf("Map contents: %v\n", data)
+
 	longURL, found := data[shortCode]
 	if !found {
 		return "", ErrNotFound
@@ -87,6 +90,7 @@ func (s *URLStorage) readFile() (map[string]string, error) {
 	}
 
 	if len(file) == 0 {
+		log.Println("file is empty")
 		return data, nil
 	}
 

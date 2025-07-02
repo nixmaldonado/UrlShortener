@@ -19,10 +19,11 @@ func main() {
 		handlerShorten(c, storage)
 	})
 
-	r.GET("/v1/:short_url", func(c *gin.Context) {
+	r.GET("/v1/:short_code", func(c *gin.Context) {
 		handleRedirect(c, storage)
 	})
 
+	log.Println("Server starting on :8081")
 	if err := r.Run(":8081"); err != nil {
 		log.Fatal(err)
 	}
