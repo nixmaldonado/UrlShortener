@@ -3,8 +3,9 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"net/url"
 )
+
+const ShortCode = "short_code"
 
 type Payload struct {
 	LongUrl string `json:"long_url"`
@@ -19,9 +20,8 @@ func handlerShorten(c *gin.Context) {
 		return
 	}
 
-	if validURL(p.LongUrl) {
-		// collision checking
-		//database saving
+	if isValidUrl(p.LongUrl) {
+
 		return
 	}
 
@@ -31,14 +31,4 @@ func handlerShorten(c *gin.Context) {
 
 func handleRedirect(c *gin.Context) {
 
-}
-
-func validURL(u string) bool {
-	_, err := url.ParseRequestURI(u)
-
-	if err != nil {
-		return false
-	}
-
-	return true
 }
