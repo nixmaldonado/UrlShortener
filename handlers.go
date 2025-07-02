@@ -45,16 +45,20 @@ func handleRedirect(c *gin.Context, storage *URLStorage) {
 
 	log.Printf("Received shortCode: %q", shortCode)
 
-	longUrl, err := storage.Get(shortCode)
+	entry, err := storage.Get(shortCode)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if longUrl == "" {
+	if entry.URL == "" {
 		c.JSON(http.StatusNotFound, gin.H{"error": "URL not found"})
 		return
 	}
 
-	c.Redirect(http.StatusFound, longUrl)
+	if err := storage.IncrementCounter(shortCode); err != nil {
+		log.Printf("Error incrementing counter: %v", err)
+	}
+
+	c.Redirect(http.StatusFound, entry.URL)
 }

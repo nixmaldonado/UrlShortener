@@ -25,6 +25,11 @@ type URLStorage struct {
 	mutex    sync.RWMutex
 }
 
+type URLEntry struct {
+	URL           string `json:"url"`
+	RedirectCount int    `json:"redirect_count"`
+}
+
 func NewStorage() (*URLStorage, error) {
 	s := &URLStorage{
 		filename: FileName,
@@ -54,7 +59,10 @@ func (s *URLStorage) Store(shortCode string, longURL string) (string, error) {
 		}
 
 		if _, found := data[shortCode]; !found {
-			data[shortCode] = longURL
+			data[shortCode] = URLEntry{
+				URL:           longURL,
+				RedirectCount: 0,
+			}
 			if err := s.writeFile(data); err != nil {
 				return "", err
 			}
@@ -63,45 +71,75 @@ func (s *URLStorage) Store(shortCode string, longURL string) (string, error) {
 	}
 }
 
-func (s *URLStorage) Get(shortCode string) (string, error) {
+func (s *URLStorage) Get(shortCode string) (URLEntry, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
+	entry := URLEntry{}
+
 	data, err := s.readFile()
 	if err != nil {
-		return "", err
+		return entry, err
 	}
 
 	log.Printf("Map contents: %v\n", data)
 
-	longURL, found := data[shortCode]
+	entry, found := data[shortCode]
 	if !found {
-		return "", ErrNotFound
+		return entry, ErrNotFound
 	}
 
-	return longURL, nil
+	return entry, nil
 }
 
-func (s *URLStorage) readFile() (map[string]string, error) {
-	data := make(map[string]string)
+func (s *URLStorage) IncrementCounter(shortCode string) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	data, err := s.readFile()
+	if err != nil {
+		return fmt.Errorf("failed to read data: %w", err)
+	}
+
+	entry, found := data[shortCode]
+	if !found {
+		return ErrNotFound
+	}
+
+	entry.RedirectCount++
+	data[shortCode] = entry
+
+	if err := s.writeFile(data); err != nil {
+		return fmt.Errorf("failed to write updated data: %w", err)
+	}
+
+	return nil
+}
+
+func (s *URLStorage) readFile() (map[string]URLEntry, error) {
+	data := make(map[string]URLEntry)
 	file, err := os.ReadFile(s.filename)
 	if err != nil {
+		if os.IsNotExist(err) {
+			log.Println("File does not exist, initializing empty storage")
+			return data, nil
+		}
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
 	if len(file) == 0 {
-		log.Println("file is empty")
+		log.Println("File is empty")
 		return data, nil
 	}
 
 	if err := json.Unmarshal(file, &data); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal file: %w", err)
 	}
 
 	return data, nil
 }
 
-func (s *URLStorage) writeFile(data map[string]string) error {
+func (s *URLStorage) writeFile(data map[string]URLEntry) error {
 	bytes, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal JSON: %w", err)
