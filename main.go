@@ -6,15 +6,21 @@ import (
 )
 
 func main() {
+	storage, err := NewStorage()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	r := gin.Default()
+
 	//TODO ADD MIDDLEWARE RATE LIMITING r.Use(rateLimiter)
 
 	r.POST("/v1/shorten", func(c *gin.Context) {
-		handlerShorten(c)
+		handlerShorten(c, storage)
 	})
 
 	r.GET("/v1/:short_url", func(c *gin.Context) {
-		handleRedirect(c)
+		handleRedirect(c, storage)
 	})
 
 	if err := r.Run(":8081"); err != nil {
