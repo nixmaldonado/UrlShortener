@@ -47,7 +47,7 @@ func setupTestStorageWithData(t *testing.T) (*URLStorage, string) {
 
 func TestSuccessfulStorage(t *testing.T) {
 	s, tempFile := setupTestStorage(t)
-	defer os.Remove(tempFile) // Clean up
+	defer os.Remove(tempFile)
 
 	shortCode, err := s.Store("abc123", "https://example.com")
 	if err != nil {
@@ -85,7 +85,7 @@ func TestSuccessfulStorage(t *testing.T) {
 
 func TestCollisionHandling(t *testing.T) {
 	s, tempFile := setupTestStorage(t)
-	defer os.Remove(tempFile) // Clean up
+	defer os.Remove(tempFile)
 
 	_, err := s.Store("abc123", "https://example1.com")
 	if err != nil {
@@ -129,7 +129,7 @@ func TestCollisionHandling(t *testing.T) {
 
 func TestSuccessfulRetrieval(t *testing.T) {
 	s, tempFile := setupTestStorageWithData(t)
-	defer os.Remove(tempFile) // Clean up
+	defer os.Remove(tempFile)
 
 	entry, err := s.Get("abc123")
 	if err != nil {
@@ -145,15 +145,47 @@ func TestSuccessfulRetrieval(t *testing.T) {
 	}
 }
 
-func TestNotFound(t *testing.T) {
+func TestShortCodeNotFound(t *testing.T) {
 	s, tempFile := setupTestStorageWithData(t)
-	defer os.Remove(tempFile) // Clean up
+	defer os.Remove(tempFile)
 
 	_, err := s.Get("nonexistent")
 	if err == nil {
 		t.Error("Expected ErrNotFound for nonexistent short code, got nil")
 	}
 
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("Expected error to be ErrNotFound, got %v", err)
+	}
+}
+
+func TestIncrementCounterSuccess(t *testing.T) {
+	s, tempFile := setupTestStorageWithData(t)
+	defer os.Remove(tempFile)
+
+	err := s.IncrementCounter("abc123")
+	if err != nil {
+		t.Errorf("IncrementCounter failed: %v", err)
+	}
+
+	entry, err := s.Get("abc123")
+	if err != nil {
+		t.Fatalf("Get failed after increment: %v", err)
+	}
+
+	if entry.RedirectCount != 6 {
+		t.Errorf("Expected RedirectCount 6, got %d", entry.RedirectCount)
+	}
+}
+
+func TestIncrementCounterNotFound(t *testing.T) {
+	s, tempFile := setupTestStorageWithData(t)
+	defer os.Remove(tempFile)
+
+	err := s.IncrementCounter("nonexistent")
+	if err == nil {
+		t.Error("Expected ErrNotFound for nonexistent short code, got nil")
+	}
 	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("Expected error to be ErrNotFound, got %v", err)
 	}
