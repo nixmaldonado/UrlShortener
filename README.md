@@ -68,3 +68,11 @@ Follow these steps to run the URL shortener locally:
     This should redirect you to https://github.com/.
 
     The **redirect_count** in urls.json will increment each time the URL is accessed.
+
+## Running Unit Test
+
+To run all tests in the project, execute the following command in the terminal from the project root directory:
+
+```bash
+go test -v ./...
+```
