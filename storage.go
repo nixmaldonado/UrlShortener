@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"go.uber.org/zap"
 	"os"
 	"sync"
 )
@@ -55,7 +55,7 @@ func (s *URLStorage) Store(shortCode string, longURL string) (string, error) {
 
 	for i := 0; ; i++ {
 		if i > 0 {
-			shortCode = fmt.Sprintf("%s_%d", shortCode, i)
+			shortCode = fmt.Sprintf("%s_%d", shortCode, i) // Handle collision gracefully
 		}
 
 		if _, found := data[shortCode]; !found {
@@ -63,6 +63,7 @@ func (s *URLStorage) Store(shortCode string, longURL string) (string, error) {
 				URL:           longURL,
 				RedirectCount: 0,
 			}
+
 			if err := s.writeFile(data); err != nil {
 				return "", err
 			}
@@ -81,8 +82,6 @@ func (s *URLStorage) Get(shortCode string) (URLEntry, error) {
 	if err != nil {
 		return entry, err
 	}
-
-	log.Printf("Map contents: %v\n", data)
 
 	entry, found := data[shortCode]
 	if !found {
@@ -121,18 +120,21 @@ func (s *URLStorage) readFile() (map[string]URLEntry, error) {
 	file, err := os.ReadFile(s.filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Println("File does not exist, initializing empty storage")
+			log.Error(ErrorFileNotExist, zap.Error(err))
 			return data, nil
 		}
+
+		log.Error(ErrorFailedToReadFile, zap.Error(err))
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
 	if len(file) == 0 {
-		log.Println("File is empty")
+		log.Info(EventEmptyStorageFile)
 		return data, nil
 	}
 
 	if err := json.Unmarshal(file, &data); err != nil {
+		log.Error(ErrorUnmarshallingStorageFile, zap.Error(err))
 		return nil, fmt.Errorf("failed to unmarshal file: %w", err)
 	}
 
@@ -142,15 +144,18 @@ func (s *URLStorage) readFile() (map[string]URLEntry, error) {
 func (s *URLStorage) writeFile(data map[string]URLEntry) error {
 	bytes, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
+		log.Error(ErrorIndentingFile, zap.Error(err))
 		return fmt.Errorf("failed to marshal JSON: %w", err)
 	}
 
 	tempFile := s.filename + ".tmp"
 	if err := os.WriteFile(tempFile, bytes, 0666); err != nil {
+		log.Error(ErrorWritingToStorage, zap.Error(err))
 		return fmt.Errorf("failed to write temp file: %w", err)
 	}
 
 	if err := os.Rename(tempFile, s.filename); err != nil {
+		log.Error(ErrorRenamingTempFile, zap.Error(err))
 		return fmt.Errorf("failed to rename temp file: %w", err)
 	}
 
