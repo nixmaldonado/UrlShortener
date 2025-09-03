@@ -58,7 +58,12 @@ func (s *URLStorage) Store(shortCode string, longURL string) (string, error) {
 			shortCode = fmt.Sprintf("%s_%d", shortCode, i) // Handle collision gracefully
 		}
 
-		if _, found := data[shortCode]; !found {
+		entry, found := data[shortCode]
+		if found && entry.URL == longURL {
+			return shortCode, nil
+		}
+
+		if !found {
 			data[shortCode] = URLEntry{
 				URL:           longURL,
 				RedirectCount: 0,
