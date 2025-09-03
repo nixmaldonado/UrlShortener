@@ -8,6 +8,12 @@ build:
 	mkdir -p $(BUILD_DIR)
 	go build -ldflags "-X main.commitHash=$(COMMIT_HASH)" -o $(BUILD_DIR)/shortUrls
 
+# Test the application and generate HTML coverage file
+test:
+	mkdir -p $(BUILD_DIR)
+	go test ./... -cover -coverprofile=$(BUILD_DIR)/coverage.out
+	go tool cover -html=$(BUILD_DIR)/coverage.out -o $(BUILD_DIR)/coverage.html
+
 # Run the application
 run: build
 	./build/shortUrls
@@ -16,4 +22,4 @@ run: build
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: build run clean
+.PHONY: build test run clean
