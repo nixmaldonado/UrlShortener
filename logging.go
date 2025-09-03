@@ -11,7 +11,7 @@ var log *zap.Logger
 // InitLogging initializes the Zap log with commit hash
 func InitLogging() {
 	config := zap.NewProductionConfig()
-	config.OutputPaths = []string{"stdout", "/var/log/urlShortener/app.log"}
+	config.OutputPaths = []string{"stdout", "logs/app.log"}
 	config.EncoderConfig.TimeKey = "timestamp" // Overrides "ts" key for clarity
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	config.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel)
