@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-const CodeSize = 7
-
 func isValidUrl(longUrl string) bool {
 	u, err := url.ParseRequestURI(longUrl)
 	if err != nil {
@@ -34,5 +32,5 @@ func generateShortCode(longURL string) string {
 	hash := crc32.ChecksumIEEE([]byte(longURL))
 	hashString := fmt.Sprintf("%010d", hash)
 
-	return hashString[:CodeSize]
+	return hashString[:conf.CodeSize]
 }
