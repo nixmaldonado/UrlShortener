@@ -24,8 +24,8 @@ A sample `urls.json` is included with the following content:
 
 ```json
 {
-  "1276058": {
-    "url": "https://github.com/",
+  "996e1f714": {
+    "url": "https://github.com",
     "redirect_count": 0
   }
 }
@@ -53,7 +53,7 @@ Follow these steps to run the URL shortener locally:
 
 3. **Start the server by running**:
     ```bash
-    go run .
+    make run
     ```
 
    This will start the server on localhost:8081 (the default port).
@@ -62,7 +62,7 @@ Follow these steps to run the URL shortener locally:
     Open a web browser or use a tool like curl to test the short URL:
 
     ```bash
-    curl -L http://localhost:8081/v1/1276058
+    curl -L http://localhost:8081/v1/996e1f714
     ```
 
     This should redirect you to https://github.com/.
@@ -74,5 +74,5 @@ Follow these steps to run the URL shortener locally:
 To run all tests in the project, execute the following command in the terminal from the project root directory:
 
 ```bash
-go test -v ./...
+make test
 ```
