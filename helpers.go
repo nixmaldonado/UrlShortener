@@ -1,9 +1,9 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"go.uber.org/zap"
-	"hash/crc32"
 	"net/url"
 	"strings"
 )
@@ -29,8 +29,8 @@ func isValidUrl(longUrl string) bool {
 }
 
 func generateShortCode(longURL string) string {
-	hash := crc32.ChecksumIEEE([]byte(longURL))
-	hashString := fmt.Sprintf("%010d", hash)
+	hash := sha256.Sum256([]byte(longURL))
+	hashStr := fmt.Sprintf("%x", hash)
 
-	return hashString[:conf.CodeSize]
+	return hashStr[:conf.CodeSize]
 }
