@@ -20,6 +20,8 @@ func TestMain(m *testing.M) {
 		panic("failed to initialize log: " + err.Error())
 	}
 
+	InitConfig()
+
 	// Run tests
 	os.Exit(m.Run())
 }

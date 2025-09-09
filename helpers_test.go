@@ -42,8 +42,8 @@ func TestGenerateShortCode(t *testing.T) {
 		t.Run(test.input, func(t *testing.T) {
 			result := generateShortCode(test.input)
 
-			if len(result) != CodeSize {
-				t.Errorf("generateShortCode(%q) length = %d; want %d", test.input, len(result), CodeSize)
+			if len(result) != conf.CodeSize {
+				t.Errorf("generateShortCode(%q) length = %d; want %d", test.input, len(result), conf.CodeSize)
 			}
 
 			code1 := generateShortCode(test.input)
